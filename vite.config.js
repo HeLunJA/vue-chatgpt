@@ -10,9 +10,9 @@ export default ({ mode }) => {
   return defineConfig({
     plugins: [
       vue(),
-      Components({
-        resolvers: [VantResolver()]
-      }),
+      // Components({
+      //   resolvers: [VantResolver()]
+      // }),
       createSvgIconsPlugin({
         iconDirs: [resolve(process.cwd(), 'src/assets/svg')]
       })
@@ -45,6 +45,11 @@ export default ({ mode }) => {
           target: loadEnv(mode, process.cwd()).VITE_BASE_API,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, '')
+        },
+        '/kapi': {
+          target: loadEnv(mode, process.cwd()).VITE_BASE_API_K,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/kapi/, '')
         }
       },
       host: '0.0.0.0'

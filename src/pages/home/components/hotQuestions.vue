@@ -1,5 +1,15 @@
 <script setup>
+import { ref, defineEmits } from 'vue'
 import svgIcon from '@/components/svgIcon.vue'
+const emits = defineEmits(['change'])
+const hots = ref([
+  '有男朋友遇到更好的男生怎么办？',
+  '男朋友不想和我结婚也不分手是什么心态？',
+  '怎样看出一个海王对你动了真心？'
+])
+const clickItem = (value) => {
+  emits('change', value)
+}
 </script>
 <template>
   <div class="header flex-center-between">
@@ -15,9 +25,7 @@ import svgIcon from '@/components/svgIcon.vue'
     </div>
   </div>
   <div class="context">
-    <div class="item">有男朋友遇到更好的男生怎么办？</div>
-    <div class="item">有男朋友遇到更好的男生怎么办？</div>
-    <div class="item">有男朋友遇到更好的男生怎么办？</div>
+    <div class="item" v-for="item in hots" :key="item" @click="clickItem(item)">{{ item }}</div>
   </div>
   <div class="all">
     <div class="border"></div>

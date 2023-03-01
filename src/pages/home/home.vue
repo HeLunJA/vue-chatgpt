@@ -1,18 +1,63 @@
 <script setup>
+import { isWeiXin } from '@/utils/utils'
+import { useGlobalStore } from '@/store/global'
+import { ref } from 'vue'
 import tabBar from '@/components/tabBar.vue'
 import hotQuestions from './components/hotQuestions.vue'
 import chat from './components/chat.vue'
 import svgIcon from '@/components/svgIcon.vue'
 import { instance } from '@/service'
-// instance.get('/wechat/authorize?returnUrl=http://ai.jxzw.cn/')
-// window.open(
-//   'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxbf55b52391275903&redirect_uri=http%3A%2F%2Fpay.jxzw.cn%2Fwechat%2FuserInfo&response_type=code&scope=snsapi_base&state=http%3A%2F%2Fai.jxzw.cn%2F'
-// )
+const globalStore = useGlobalStore()
+const openFlag = ref(globalStore.openid)
+function getQueryString(name) {
+  let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+  let r = window.location.search.substr(1).match(reg)
+  if (r != null) {
+    return unescape(r[2])
+  }
+  return null
+}
+if (isWeiXin()) {
+  if (!globalStore.openid) {
+    const code = getQueryString('code')
+    if (code) {
+      instance
+        .post('/wechat/userInfo', {
+          returnUrl: 'http://ai.jxzw.cn',
+          code,
+          state: 'http://ai.jxzw.cn/'
+        })
+        .then((res) => {
+          const { accessToken, count, openid, apikey } = res.data
+          localStorage.setItem('chat-count', count)
+          console.log(res, 666666)
+          globalStore.updateOpenid(openid)
+        })
+    } else {
+      instance
+        .post('/wechat/authorized', {
+          returnUrl: 'http://ai.jxzw.cn'
+        })
+        .then((res) => {
+          const { redirect } = res.data
+          if (!redirect) return
+          // window.open(unescape(redirect))
+          window.open(
+            'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxbf55b52391275903&redirect_uri=http://ai.jxzw.cn&response_type=code&scope=snsapi_base&state=http%3A%2F%2Fai.jxzw.cn%2F'
+          )
+        })
+    }
+  }
+}
+const hotValue = ref('')
+const hotChange = (value) => {
+  hotValue.value = value
+}
 </script>
 <template>
-  <div class="default-chat mt">
+  <div class="default-chat mt" v-if="openFlag">
     <div class="logo">
-      <svg-icon size="30px" name="hot" color="red" />
+      <img style="width: 100%; height: 100%" src="@/assets/151.jpg" alt="" />
     </div>
     <div class="content">你好，我是人工智能Chat机器人，我可以回答你所有的问题，快来和我聊天吧！</div>
   </div>
@@ -25,14 +70,18 @@ import { instance } from '@/service'
       <div>3、帮我写一份PHP获取最大数的代码</div>
     </div>
   </div>
-  <hot-questions></hot-questions>
-  <chat />
+  <hot-questions @change="hotChange"></hot-questions>
+  <chat :defValue="hotValue" />
   <tab-bar />
+  <div class="bt-h"></div>
 </template>
 <style lang="less" scoped>
 .text {
   color: @theme-color;
   font-size: 18px;
+}
+.bt-h {
+  height: 180px;
 }
 .pt-none {
   padding-top: 0 !important;
