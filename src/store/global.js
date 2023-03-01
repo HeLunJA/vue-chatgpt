@@ -4,7 +4,7 @@ export const useGlobalStore = defineStore({
   state: () => {
     return {
       tabIndex: 0, // 底部导航栏index
-      openid: 'odkSp5lbodtZutkIK2AXHffCSJBs', // 用户唯一id
+      openid: '', // 用户唯一id
       apiKey: '', // 发起聊天卡券key
       coupons: [], // 卡券列表
       modeType: 1 // 聊天模型类型
