@@ -5,6 +5,7 @@ import Robot from '@/pages/robot/robot.vue'
 import recordView from '@/pages/record/record.vue'
 import coupon from '@/pages/coupon/coupon.vue'
 import aboutUs from '@/pages/aboutUs/aboutUs.vue'
+import help from '@/pages/help/help.vue'
 import fw from '@/pages/fw/fw.vue'
 import ys from '@/pages/ys/ys.vue'
 const router = createRouter({
@@ -49,6 +50,11 @@ const router = createRouter({
       path: '/fw',
       name: 'fw',
       component: fw
+    },
+    {
+      path: '/help',
+      name: 'help',
+      component: help
     }
   ]
 })

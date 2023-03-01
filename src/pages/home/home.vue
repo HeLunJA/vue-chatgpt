@@ -8,7 +8,6 @@ import chat from './components/chat.vue'
 import svgIcon from '@/components/svgIcon.vue'
 import { instance } from '@/service'
 const globalStore = useGlobalStore()
-const openFlag = ref(globalStore.openid)
 function getQueryString(name) {
   let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
   let r = window.location.search.substr(1).match(reg)
@@ -28,9 +27,9 @@ if (isWeiXin()) {
           state: 'http://ai.jxzw.cn/'
         })
         .then((res) => {
-          const { accessToken, count, openid, apikey } = res.data
+          const { count, openid, apikey } = res.data
           localStorage.setItem('chat-count', count)
-          console.log(res, 666666)
+          globalStore.updateKey(apikey)
           globalStore.updateOpenid(openid)
         })
     } else {
@@ -49,15 +48,20 @@ if (isWeiXin()) {
     }
   }
 }
+if (!globalStore.coupons?.length) {
+  instance.get('/buyer/order/getProducts').then((res) => {
+    globalStore.updateCoupons(res.data)
+  })
+}
 const hotValue = ref('')
 const hotChange = (value) => {
   hotValue.value = value
 }
 </script>
 <template>
-  <div class="default-chat mt" v-if="openFlag">
+  <div class="default-chat mt">
     <div class="logo">
-      <img style="width: 100%; height: 100%" src="@/assets/151.jpg" alt="" />
+      <img style="width: 100%; height: 100%" src="@/assets/6.jpg" alt="" />
     </div>
     <div class="content">你好，我是人工智能Chat机器人，我可以回答你所有的问题，快来和我聊天吧！</div>
   </div>

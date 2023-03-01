@@ -4,8 +4,8 @@ export const useGlobalStore = defineStore({
   state: () => {
     return {
       tabIndex: 0, // 底部导航栏index
-      openid: '', // 用户唯一id
-      apiKey: 'i30VX9R1T6L7Y4G2', // 发起聊天卡券key
+      openid: 'odkSp5lbodtZutkIK2AXHffCSJBs', // 用户唯一id
+      apiKey: '', // 发起聊天卡券key
       coupons: [], // 卡券列表
       modeType: 1 // 聊天模型类型
     }

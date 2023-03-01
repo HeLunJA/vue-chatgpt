@@ -12,15 +12,15 @@ const router = useRouter()
 const globalStore = useGlobalStore()
 const active = ref(globalStore.tabIndex)
 const tabOptions = ref([
-  { label: '首页', icon: syIcon, selectIcon: syActive, path: '/' },
-  { label: '机器人', icon: jqrIcon, selectIcon: jqrActive, path: '/robot' },
-  { label: '我的', icon: userIcon, selectIcon: userActive, path: '/user' }
+  { label: '首页', icon: syIcon, selectIcon: syActive, name: 'home' },
+  { label: '机器人', icon: jqrIcon, selectIcon: jqrActive, name: 'robot' },
+  { label: '我的', icon: userIcon, selectIcon: userActive, name: 'user' }
 ])
 const clickTab = (index) => {
   globalStore.updateTabIndex(index)
-  const path = tabOptions.value[index].path
-  router.push({
-    path
+  const name = tabOptions.value[index].name
+  router.replace({
+    name
   })
 }
 </script>

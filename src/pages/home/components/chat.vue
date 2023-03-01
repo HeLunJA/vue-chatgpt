@@ -1,9 +1,11 @@
 <script setup>
+import { showToast } from 'vant'
 import axios from 'axios'
 import { useGlobalStore } from '@/store/global'
 import { ref, unref, defineProps, watch } from 'vue'
 import svgIcon from '@/components/svgIcon.vue'
-import { instance } from '@/service'
+import { instance, instance2 } from '@/service'
+import router from '@/router'
 const globalStore = useGlobalStore()
 const props = defineProps({
   defValue: {
@@ -25,40 +27,64 @@ const send = () => {
   if (!chatValue.value) {
     return
   }
-  instance.get(`/pay/getApikey?openid=${globalStore.openid}`).then((res) => {
-    console.log(res)
-    const apiKey = res.data?.apikey
-    globalStore.updateKey(apiKey)
+  let count = localStorage.getItem('chat-count')
+  const chatKey = localStorage.getItem('chat-key')
+  if (globalStore.apiKey || count > 0) {
+    if (count > 0) {
+      count -= 1
+      console.log(count, localStorage.getItem('chat-count'))
+      localStorage.setItem('chat-count', count)
+    }
+    if (count < 0 && !globalStore.apikey) {
+      showToast('体验次数已用完')
+      setTimeout(() => {
+        router.push({
+          path: '/coupon'
+        })
+      }, 2000)
+    }
     chats.value.push({
       isUser: true,
       value: chatValue.value
     })
-    setTimeout(() => {
-      chats.value.push({
-        isUser: 'loading',
-        value: ''
+    chats.value.push({
+      isUser: 'loading',
+      value: ''
+    })
+    instance2
+      .post('/api/openai', {
+        apikey: globalStore.apiKey || chatKey || '',
+        text: chatValue.value,
+        id: 1,
+        keep: 1,
+        keepText: chatValue.value,
+        type: globalStore.modeType,
+        openid: globalStore.openid
       })
-    }, 500)
-    if (globalStore.apiKey) {
-      axios
-        .post('http://chat.jxzw.cn/api/openai', {
-          apikey: globalStore.apiKey,
-          text: chatValue.value,
-          id: 1,
-          keep: 1,
-          keepText: chatValue.value,
-          type: globalStore.modeType
+      .then((res) => {
+        const html = res.data?.html
+        chats.value.forEach((item) => {
+          console.log(item, 'item')
+          if (item.isUser === 'loading') {
+            item.value = html
+            item.isUser = false
+          }
         })
-        .then((res) => {
-          console.log(res, 666666)
-          const html = res.data?.html
-          chats.value[chats.value.length - 1].value = html
-          chats.value[chats.value.length - 1].isUser = false
-          localStorage.setItem('chats', JSON.stringify(unref(chats)))
-          chatValue.value = ''
-        })
-    }
-  })
+        console.log(chats.value, '数组')
+        localStorage.setItem('chats', JSON.stringify(unref(chats)))
+        chatValue.value = ''
+      })
+      .catch((err) => {
+        console.log(err, '聊天错误')
+      })
+  } else {
+    showToast('体验次数已用完')
+    setTimeout(() => {
+      router.push({
+        path: '/coupon'
+      })
+    }, 2000)
+  }
 }
 const openNewChat = () => {
   let chatList = localStorage.getItem('chatList')
@@ -116,7 +142,7 @@ watch(
       <svg-icon size="18px" name="send" />
     </div>
   </div>
-  <van-popup v-model:show="showLeft" position="left" :style="{ width: '60%', height: '100%', background: '#2F2F39' }">
+  <van-popup v-model:show="showLeft" position="left" :style="{ width: '60%', height: '100%', background: '#fff' }">
     <div class="popup">
       <div class="add-btn" @click="openNewChat">
         <span class="icon">+</span>
@@ -124,11 +150,11 @@ watch(
       </div>
       <div class="popup-item">
         <span>"人工智能"的探索之旅</span>
-        <img src="@/assets/rg.png" alt="" />
+        <img src="@/assets/rt2.png" alt="" />
       </div>
       <div class="popup-item">
         <span>"人工智能"的探索之旅</span>
-        <img src="@/assets/rg.png" alt="" />
+        <img src="@/assets/rt2.png" alt="" />
       </div></div
   ></van-popup>
 </template>
@@ -239,7 +265,7 @@ watch(
   text-align: center;
   line-height: 40px;
   border-radius: 8px;
-  color: #fff;
+  color: #333;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -256,7 +282,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #fff;
+  color: #333;
   border-bottom: 1px solid #999;
   font-size: 14px;
   & > img {

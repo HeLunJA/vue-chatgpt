@@ -1,5 +1,8 @@
-<script setup></script>
+<script setup>
+import navBar from '@/components/navBar.vue'
+</script>
 <template>
+  <navBar title="推广记录" />
   <div class="body">
     <div class="mas"></div>
     <div class="content">

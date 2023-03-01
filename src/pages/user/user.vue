@@ -10,37 +10,41 @@ const globalStore = useGlobalStore()
 const router = useRouter()
 const czModel = ref(false)
 const gzhModel = ref(false)
-const kmKey = ref()
+const dlModel = ref(false)
+const tgModel = ref(false)
+const codeText = `http://ai.jxzw.cn?u=${globalStore.openid}`
+const kmKey = ref('')
 const handleClick = () => {
   czModel.value = true
 }
 const handleDh = () => {
   showToast('兑换成功')
+  localStorage.setItem('chat-key', kmKey.value)
   setTimeout(() => {
     czModel.value = false
+    kmKey.value = ''
   }, 500)
 }
-const handleTg = () => {
+const handleTo = (path) => {
   router.push({
-    path: '/record'
+    path
   })
 }
-const openMember = () => {
-  router.push({
-    path: '/coupon'
+if (!globalStore.coupons?.length) {
+  instance.get('/buyer/order/getProducts').then((res) => {
+    globalStore.updateCoupons(res.data)
   })
 }
-const clickUs = () => {
-  router.push({
-    path: '/aboutUs'
-  })
-}
-instance.get('/buyer/order/getProducts').then((res) => {
-  globalStore.updateCoupons(res.data)
-})
 </script>
 <template>
-  <!-- <div class="code"><vue-qr ref="qrCode" text="http://ai.jxzw.cn" logoScale="40" :size="190" :margin="10" />  </div> -->
+  <div v-if="tgModel" class="km-popup">
+    <div class="mas" @click="tgModel = false"></div>
+    <div class="dlpng"><vue-qr ref="qrCode" :text="codeText" :logoScale="40" :size="190" :margin="10" />  </div>
+  </div>
+  <div v-if="dlModel" class="km-popup">
+    <div class="mas" @click="dlModel = false"></div>
+    <img class="dlpng" src="@/assets/dl.png" alt="" />
+  </div>
   <div v-if="czModel" class="km-popup">
     <div class="mas" @click="czModel = false"></div>
     <div class="km-box">
@@ -77,12 +81,12 @@ instance.get('/buyer/order/getProducts').then((res) => {
           <span>丨</span>
           <span>畅享无限对话</span>
         </div>
-        <div class="btn" @click="openMember">立即开通</div>
+        <div class="btn" @click="handleTo('/coupon')">立即开通</div>
       </div>
-      <div class="foot">
+      <div class="foot" @click="tgModel = true">
         <div class="lf-box">
           <img class="logo" src="@/assets/tghb.png" alt="" />
-          <div class="title">推广海报</div>
+          <div class="name-title">推广海报</div>
         </div>
         <div class="text">
           <span>推荐会员充值得30%佣金</span>
@@ -94,7 +98,7 @@ instance.get('/buyer/order/getProducts').then((res) => {
       <div class="item" style="margin-top: 0">
         <div class="lf-box">
           <img src="@/assets/kmdh.png" alt="" />
-          <div class="title">卡密兑换</div>
+          <div class="name-title">卡密兑换</div>
         </div>
         <div class="rg-box" @click="handleClick">
           <div class="btn2">兑换</div>
@@ -111,28 +115,28 @@ instance.get('/buyer/order/getProducts').then((res) => {
           <img src="@/assets/rt2.png" alt="" />
         </div>
       </div>
-      <div class="item">
+      <div class="item" @click="handleTo('/help')">
         <div class="lf-box">
           <img src="@/assets/jc.png" alt="" />
-          <div class="title">使用教程</div>
+          <div class="name-title">使用教程</div>
         </div>
         <div class="rg-box">
           <img src="@/assets/rt2.png" alt="" />
         </div>
       </div>
-      <div class="item">
+      <div class="item" @click="dlModel = true">
         <div class="lf-box">
           <img src="@/assets/dlr.png" alt="" />
-          <div class="title">成为代理人</div>
+          <div class="name-title">成为代理人</div>
         </div>
         <div class="rg-box">
           <img src="@/assets/rt2.png" alt="" />
         </div>
       </div>
-      <div class="item" @click="handleTg">
+      <div class="item" @click="handleTo('/record')">
         <div class="lf-box">
           <img src="@/assets/tg.png" alt="" />
-          <div class="title">推广记录</div>
+          <div class="name-title">推广记录</div>
         </div>
         <div class="rg-box">
           <img src="@/assets/rt2.png" alt="" />
@@ -141,16 +145,16 @@ instance.get('/buyer/order/getProducts').then((res) => {
       <div class="item">
         <div class="lf-box">
           <img src="@/assets/kf.png" alt="" />
-          <div class="title">在线客服</div>
+          <div class="name-title">在线客服</div>
         </div>
         <div class="rg-box">
           <img src="@/assets/rt2.png" alt="" />
         </div>
       </div>
-      <div class="item" @click="clickUs">
+      <div class="item" @click="handleTo('/aboutUs')">
         <div class="lf-box">
           <img src="@/assets/gywm.png" alt="" />
-          <div class="title">关于我们</div>
+          <div class="name-title">关于我们</div>
         </div>
         <div class="rg-box">
           <img src="@/assets/rt2.png" alt="" />
@@ -227,6 +231,7 @@ instance.get('/buyer/order/getProducts').then((res) => {
       padding: 6px 12px;
       border-radius: 12px;
       font-weight: 600;
+      font-size: 14px;
     }
   }
   .foot {
@@ -252,6 +257,9 @@ instance.get('/buyer/order/getProducts').then((res) => {
         height: 20px;
         margin-right: 8px;
       }
+      .name-title {
+        font-size: 17px;
+      }
     }
     .text {
       color: @theme-color;
@@ -274,7 +282,10 @@ instance.get('/buyer/order/getProducts').then((res) => {
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
-    margin-top: 20px;
+    margin-top: 30px;
+    .name-title {
+      font-size: 17px;
+    }
     .lf-box {
       display: flex;
       align-items: center;
@@ -356,6 +367,15 @@ instance.get('/buyer/order/getProducts').then((res) => {
   top: 0;
   bottom: 0;
   z-index: 1000000;
+  .dlpng {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 200px;
+    width: 200px;
+    height: 240px;
+    z-index: 1313;
+  }
   .mas {
     position: fixed;
     left: 0;

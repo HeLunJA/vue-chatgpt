@@ -1,4 +1,5 @@
 <script setup>
+import navBar from '@/components/navBar.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleTg = (path) => {
@@ -8,6 +9,7 @@ const handleTg = (path) => {
 }
 </script>
 <template>
+  <navBar title="关于我们" />
   <div class="body">
     <div class="box">
       <img class="logo" src="@/assets/uslogo.jpg" alt="" />

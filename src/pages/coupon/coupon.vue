@@ -1,4 +1,7 @@
 <script setup>
+import navBar from '@/components/navBar.vue'
+import { showLoadingToast, showSuccessToast, showFailToast } from 'vant'
+import { useRouter } from 'vue-router'
 import img1 from '@/assets/A1_01.jpg'
 import img2 from '@/assets/A1_02.jpg'
 import img3 from '@/assets/A1_03.jpg'
@@ -8,8 +11,9 @@ import img6 from '@/assets/A1_06.jpg'
 import img7 from '@/assets/A1_07.jpg'
 import { ref } from 'vue'
 import { useGlobalStore } from '@/store/global'
-import { instance2, instance } from '@/service'
+import { instance } from '@/service'
 const globalStore = useGlobalStore()
+const router = useRouter()
 function onBridgeReady(props) {
   WeixinJSBridge.invoke(
     'getBrandWCPayRequest',
@@ -23,9 +27,18 @@ function onBridgeReady(props) {
     },
     function (res) {
       if (res.err_msg == 'get_brand_wcpay_request:ok') {
-        alert(res)
+        instance.get(`/pay/getApikey?openid=${globalStore.openid}`).then((res) => {
+          const apiKey = res.data?.apikey
+          globalStore.updateKey(apiKey)
+          router.replace({
+            name: 'home'
+          })
+        })
         // 使用以上方式判断前端返回,微信团队郑重提示：
         //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+        showSuccessToast('支付成功')
+      } else {
+        showFailToast('支付失败')
       }
     }
   )
@@ -39,6 +52,10 @@ const changeActive = (index) => {
   active.value = index
 }
 const pay = () => {
+  showLoadingToast({
+    message: '加载中...',
+    forbidClick: true
+  })
   const items = coupons.value[active.value]
   instance
     .post('/buyer/order/create', {
@@ -61,10 +78,10 @@ const pay = () => {
         .post('/pay/create', {
           orderId,
           returnUrl: 'http://ai.jxzw.cn',
-          openId: globalStore.openid
+          openId: globalStore.openid,
+          prodcattegory: items.cagid
         })
         .then((res) => {
-          console.log(res, 6666)
           if (typeof WeixinJSBridge == 'undefined') {
             if (document.addEventListener) {
               document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false)
@@ -91,6 +108,7 @@ const pay = () => {
       <div style="width: 50px; background-color: red; height: 100px">3</div>
     </van-swipe-item>
   </van-swipe> -->
+  <navBar title="会员中心" />
   <van-image style="display: block" :src="img1" />
   <div class="coupon">
     <div class="items">
@@ -134,7 +152,7 @@ const pay = () => {
     top: 30px;
     padding: 0 10px;
     box-sizing: border-box;
-    z-index: 100000000;
+    z-index: 100;
     padding-bottom: 14px;
     .item {
       width: 110px;
