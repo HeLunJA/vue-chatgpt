@@ -8,6 +8,9 @@ import aboutUs from '@/pages/aboutUs/aboutUs.vue'
 import help from '@/pages/help/help.vue'
 import fw from '@/pages/fw/fw.vue'
 import ys from '@/pages/ys/ys.vue'
+import zw from '@/pages/zw/zw.vue'
+import shopAgr from '@/pages/shopAgr/shopAgr.vue'
+import withdraw from '@/pages/withdraw/withdraw.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -47,14 +50,29 @@ const router = createRouter({
       component: ys
     },
     {
+      path: '/zw',
+      name: 'zw',
+      component: zw
+    },
+    {
       path: '/fw',
       name: 'fw',
       component: fw
     },
     {
+      path: '/shopAgr',
+      name: 'shopAgr',
+      component: shopAgr
+    },
+    {
       path: '/help',
       name: 'help',
       component: help
+    },
+    {
+      path: '/withdraw',
+      name: 'withdraw',
+      component: withdraw
     }
   ]
 })

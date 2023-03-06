@@ -1,14 +1,22 @@
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { computed, defineEmits, defineProps, ref } from 'vue'
+import { showToast, showLoadingToast } from 'vant'
 import svgIcon from '@/components/svgIcon.vue'
-const emits = defineEmits(['change'])
-const hots = ref([
-  '有男朋友遇到更好的男生怎么办？',
-  '男朋友不想和我结婚也不分手是什么心态？',
-  '怎样看出一个海王对你动了真心？'
-])
+import { shuffle } from '@/utils/utils'
+const emits = defineEmits(['change', 'exchange'])
+const props = defineProps({
+  questions: Array
+})
+const showBottom = ref(false)
+const hotList = computed(() => props.questions)
+const hots = computed(() => shuffle(hotList.value)?.slice(0, 3))
 const clickItem = (value) => {
   emits('change', value)
+  showBottom.value = false
+}
+const exchange = () => {
+  if (hotList.value.length < 4) return showToast('暂无更多关键词')
+  emits('exchange')
 }
 </script>
 <template>
@@ -17,7 +25,7 @@ const clickItem = (value) => {
       <svg-icon size="20px" name="hot" />
       <span>热门提问</span>
     </div>
-    <div class="rg-box flex-center">
+    <div class="rg-box flex-center" @click="exchange">
       <span>换一批</span>
       <div style="color: red">
         <svg-icon size="12px" name="sx" color="red" />
@@ -25,15 +33,63 @@ const clickItem = (value) => {
     </div>
   </div>
   <div class="context">
-    <div class="item" v-for="item in hots" :key="item" @click="clickItem(item)">{{ item }}</div>
+    <div class="item line" v-for="item in hots" :key="item" @click="clickItem(item.question)">
+      {{ item.question }}
+    </div>
   </div>
-  <div class="all">
+  <div v-if="props.questions.length" class="all" @click="showBottom = true">
     <div class="border"></div>
     <span>查看更多></span>
     <div class="border"></div>
   </div>
+  <van-popup v-model:show="showBottom" position="bottom" :style="{ height: '60%' }">
+    <div class="body">
+      <div class="title">热门提问</div>
+      <div class="hots">
+        <div class="hot line" v-for="(item, index) in props.questions" :key="index" @click="clickItem(item.question)">
+          {{ item.question }}
+        </div>
+      </div>
+    </div>
+  </van-popup>
 </template>
 <style lang="less" scoped>
+.line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  .title {
+    font-weight: bold;
+    margin: 20px 0;
+  }
+  .hots {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 320px;
+    .hot {
+      width: 320px;
+      padding: 8px;
+      float: left;
+      text-align: flex-start;
+      background-color: #f5f5f5;
+      font-size: 12px;
+      margin-bottom: 8px;
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-wrap: break-word;
+      white-space: nowrap;
+      word-break: break-all;
+    }
+  }
+}
 .flex-center {
   display: flex;
   align-items: center;

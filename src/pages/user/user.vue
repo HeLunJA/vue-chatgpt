@@ -1,25 +1,35 @@
 <script setup>
 import vueQr from 'vue-qr/src/packages/vue-qr.vue'
-import { showToast } from 'vant'
+import html2canvas from 'html2canvas'
+import { showToast, showLoadingToast } from 'vant'
 import { useGlobalStore } from '@/store/global'
 import { instance } from '@/service'
-import { ref } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import tabBar from '@/components/tabBar.vue'
 const globalStore = useGlobalStore()
+const isVipFlag = computed(() => globalStore.apiKey)
 const router = useRouter()
 const czModel = ref(false)
 const gzhModel = ref(false)
 const dlModel = ref(false)
 const tgModel = ref(false)
-const codeText = `http://ai.jxzw.cn?u=${globalStore.openid}`
+const codeText = `http://ai.jxzw.cn?share_id=${globalStore.openid}`
 const kmKey = ref('')
 const handleClick = () => {
   czModel.value = true
 }
+const jump = () => {
+  window.open('https://work.weixin.qq.com/kfid/kfc18ff070853b73981', '_self')
+}
 const handleDh = () => {
+  if (!kmKey.value) {
+    showToast('请输入正确的兑换码，不正确或者不正规的是无法使用服务的')
+    return
+  }
   showToast('兑换成功')
   localStorage.setItem('chat-key', kmKey.value)
+  globalStore.updateKey(kmKey.value)
   setTimeout(() => {
     czModel.value = false
     kmKey.value = ''
@@ -35,11 +45,43 @@ if (!globalStore.coupons?.length) {
     globalStore.updateCoupons(res.data)
   })
 }
+const erweima = ref('')
+const shareImg = ref('')
+const qrCode = ref()
+const openShare = () => {
+  showLoadingToast({
+    message: '生成中请稍候...',
+    forbidClick: true
+  })
+  tgModel.value = true
+  nextTick(() => {
+    let node = document.getElementById('mycanvas')
+    erweima.value = qrCode.value.$el.src
+    nextTick(() => {
+      html2canvas(node, {
+        width: node.offsetWidth,
+        height: node.offsetHeight,
+        useCORS: true,
+        allowTaint: true
+      }).then((canvas) => {
+        let url = canvas.toDataURL('image/png')
+        shareImg.value = url
+        //showToast('生成成功')
+      })
+    })
+  })
+}
 </script>
 <template>
+  <vue-qr ref="qrCode" class="vue-qr" :text="codeText" :logoScale="40" :size="190" :margin="10" />
+  <div id="er-img"></div>
   <div v-if="tgModel" class="km-popup">
     <div class="mas" @click="tgModel = false"></div>
-    <div class="dlpng"><vue-qr ref="qrCode" :text="codeText" :logoScale="40" :size="190" :margin="10" />  </div>
+    <div class="bgCode" id="mycanvas">
+      <img style="width: 100%; height: 100%" src="@/assets/share_bgc.png" alt="" />
+      <img class="erm" :src="erweima" alt="" />
+    </div>
+    <img class="share-img" v-if="shareImg" :src="shareImg" alt="" />
   </div>
   <div v-if="dlModel" class="km-popup">
     <div class="mas" @click="dlModel = false"></div>
@@ -69,12 +111,16 @@ if (!globalStore.coupons?.length) {
     </div>
   </div>
   <div class="body">
-    <!-- <div class="user-info">
-      <div class="cover"></div>
-      <div class="title">HAOHAO</div>
-      <div class="member-text">您暂时还不是会员</div>
-    </div> -->
-    <div class="kt">
+    <div class="user-info" v-if="isVipFlag">
+      <div class="cover">
+        <img src="@/assets/bot.png" alt="" />
+      </div>
+      <div class="title">
+        <span>微信用户</span>
+        <img src="@/assets/VIP.png" alt="" />
+      </div>
+    </div>
+    <div :class="{ kt: true, 'kt-h': isVipFlag ? false : true }">
       <div class="header">
         <div class="center">
           <div class="vip">开通VIP</div>
@@ -83,7 +129,7 @@ if (!globalStore.coupons?.length) {
         </div>
         <div class="btn" @click="handleTo('/coupon')">立即开通</div>
       </div>
-      <div class="foot" @click="tgModel = true">
+      <div class="foot" @click="openShare">
         <div class="lf-box">
           <img class="logo" src="@/assets/tghb.png" alt="" />
           <div class="name-title">推广海报</div>
@@ -142,8 +188,8 @@ if (!globalStore.coupons?.length) {
           <img src="@/assets/rt2.png" alt="" />
         </div>
       </div>
-      <div class="item">
-        <div class="lf-box">
+      <div class="item" @click="jump">
+        <div class="lf-box" >
           <img src="@/assets/kf.png" alt="" />
           <div class="name-title">在线客服</div>
         </div>
@@ -165,6 +211,33 @@ if (!globalStore.coupons?.length) {
   <tab-bar />
 </template>
 <style lang="less" scoped>
+.vue-qr {
+  position: absolute;
+  left: -100%;
+  top: -100%;
+}
+.bgCode {
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  height: 420px;
+  width: 240px;
+  .erm {
+    position: absolute;
+    bottom: 78px;
+    right: 14px;
+    width: 110px;
+    height: 110px;
+  }
+}
+.share-img {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 460px;
+  width: 280px;
+}
 ::v-deep(.van-cell) {
   background-color: #f5f5f500;
 }
@@ -174,7 +247,7 @@ if (!globalStore.coupons?.length) {
 }
 .body {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-image: linear-gradient(to right, #62affb5c, #d4daf959) !important;
   padding: 20px;
   padding-bottom: 80px;
   box-sizing: border-box;
@@ -185,16 +258,28 @@ if (!globalStore.coupons?.length) {
     justify-content: center;
     flex-direction: column;
     .cover {
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       border-radius: 20px;
-      background-color: @theme-color;
+      border: 2px solid #fff;
+      box-shadow: 0vw 0vw 1vw #dac1c182;
+      overflow: hidden;
+      & > img {
+        width: 100%;
+        height: 100%;
+      }
     }
     .title {
       font-weight: bold;
-      font-size: 26px;
-      margin: 20px 0;
+      font-size: 16px;
+      margin: 6px 0;
       margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      & > img {
+        width: 20px;
+        height: 20px;
+      }
     }
     .member-text {
       font-size: 14px;
@@ -202,17 +287,19 @@ if (!globalStore.coupons?.length) {
     }
   }
 }
+.kt-h {
+  height: 130px;
+}
 .kt {
-  margin-top: 15px;
+  margin-top: 6px;
   width: 100%;
-  height: 150px;
   background-color: @theme-color;
   padding: 10px;
   box-sizing: border-box;
   border-radius: 20px;
   position: relative;
   .header {
-    margin-top: 20px;
+    margin-top: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -258,7 +345,7 @@ if (!globalStore.coupons?.length) {
         margin-right: 8px;
       }
       .name-title {
-        font-size: 17px;
+        font-size: 14px;
       }
     }
     .text {
@@ -284,7 +371,7 @@ if (!globalStore.coupons?.length) {
     padding: 0 10px;
     margin-top: 30px;
     .name-title {
-      font-size: 17px;
+      font-size: 15px;
     }
     .lf-box {
       display: flex;
@@ -366,7 +453,7 @@ if (!globalStore.coupons?.length) {
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 1000000;
+  z-index: 100;
   .dlpng {
     position: absolute;
     left: 50%;
@@ -374,7 +461,7 @@ if (!globalStore.coupons?.length) {
     top: 200px;
     width: 200px;
     height: 240px;
-    z-index: 1313;
+    z-index: 13;
   }
   .mas {
     position: fixed;
@@ -411,7 +498,7 @@ if (!globalStore.coupons?.length) {
       background-color: #f6f9fe;
     }
     .title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       text-align: center;
       margin: 20px;

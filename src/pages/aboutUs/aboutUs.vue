@@ -12,17 +12,15 @@ const handleTg = (path) => {
   <navBar title="关于我们" />
   <div class="body">
     <div class="box">
-      <img class="logo" src="@/assets/uslogo.jpg" alt="" />
-      <div class="title">智能处理大师</div>
-      <div class="btn">V3.8.1</div>
+      <img class="logo" src="@/assets/version.png" alt="" />
     </div>
   </div>
   <div class="footer">
-    <div @click="handleTg('/fw')">服务协议</div>
+    <div @click="handleTg('/shopAgr')">服务使用协议</div>
     <div class="border"></div>
     <div @click="handleTg('/ys')">隐私协议</div>
   </div>
-  <div class="foot">Copyright Dot-to-Picture</div>
+  <div class="foot">Copyright AI魔盒</div>
 </template>
 <style lang="less" scoped>
 .box {
@@ -33,8 +31,8 @@ const handleTg = (path) => {
   justify-content: center;
   flex-direction: column;
   .logo {
-    width: 80px;
-    height: 60px;
+    width: 180px;
+    height: 170px;
   }
   .title {
     font-weight: bold;

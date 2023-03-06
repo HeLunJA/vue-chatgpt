@@ -1,5 +1,21 @@
 <script setup>
+import { computed, defineEmits, defineProps, ref } from 'vue'
 import navBar from '@/components/navBar.vue'
+import { useGlobalStore } from '@/store/global'
+import { instance } from '@/service'
+import { useRouter } from 'vue-router'
+const globalStore = useGlobalStore()
+const router = useRouter()
+const records = ref([])
+instance.get(`/wechat/getUserAgentInfo?openid=${globalStore.openid}`).then((res) => {
+  records.value = res.data
+  console.log('records data:' + records.value.balance + ' ' + records.value.invitemoney + ' ' + records.value.invitenum)
+})
+const applyHandle = () => {
+  router.push({
+    name: 'withdraw'
+  })
+}
 </script>
 <template>
   <navBar title="推广记录" />
@@ -9,11 +25,11 @@ import navBar from '@/components/navBar.vue'
       <div class="tabs">
         <div class="tab">
           <div class="text">佣金总计</div>
-          <div class="num">0</div>
+          <div class="num">{{ records.invitemoney }}</div>
         </div>
         <div class="tab">
-          <div class="text">未到账佣金</div>
-          <div class="num">0</div>
+          <div class="text">可提现余额</div>
+          <div class="num">{{ records.balance }}</div>
         </div>
         <div class="tab">
           <div class="text">直接佣金</div>
@@ -27,7 +43,7 @@ import navBar from '@/components/navBar.vue'
     </div>
     <div class="list">
       <div class="header">
-        <div class="item">佣金记录（0人）</div>
+        <div class="item">佣金记录（{{ records.invitenum }}人）</div>
         <div class="border"></div>
         <div class="item" style="color: #999">浏览记录</div>
       </div>
@@ -37,7 +53,7 @@ import navBar from '@/components/navBar.vue'
           <div>金额</div>
         </div>
       </div>
-      <div class="btn">提现申请</div>
+      <div class="btn" @click="applyHandle">提现申请</div>
       <div class="text">暂无更多</div>
       <div class="foot-text">不足100元无法提现，请继续努力</div>
     </div>
@@ -51,7 +67,6 @@ import navBar from '@/components/navBar.vue'
     left: 0;
     right: 0;
     height: 240px;
-    background-image: linear-gradient(to right, #b3ceec, #deeaf705);
   }
   .content {
     position: absolute;

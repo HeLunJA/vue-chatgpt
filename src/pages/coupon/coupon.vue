@@ -9,11 +9,14 @@ import img4 from '@/assets/A1_04.jpg'
 import img5 from '@/assets/A1_05.jpg'
 import img6 from '@/assets/A1_06.jpg'
 import img7 from '@/assets/A1_07.jpg'
+import coverImg from '@/assets/151.jpg'
 import { ref } from 'vue'
+import { getRandomInt } from '@/utils/utils'
 import { useGlobalStore } from '@/store/global'
 import { instance } from '@/service'
 const globalStore = useGlobalStore()
 const router = useRouter()
+const timeNum = getRandomInt(53000000, 54000000)
 function onBridgeReady(props) {
   WeixinJSBridge.invoke(
     'getBrandWCPayRequest',
@@ -70,7 +73,8 @@ const pay = () => {
       }),
       prodcattegory: items.cagid,
       prodid: items.id,
-      price: items.price
+      price: items.price,
+      inviteid: localStorage.getItem('share_id')
     })
     .then((res) => {
       const orderId = res.data?.data?.orderId
@@ -95,21 +99,65 @@ const pay = () => {
         })
     })
 }
+const scrollTags = ref([
+  {
+    img: coverImg,
+    name: '小北**~',
+    num: 5,
+    vipText: '30天会员'
+  },
+  {
+    img: coverImg,
+    name: 'ヽ妖娆',
+    num: 4,
+    vipText: '30天会员'
+  },
+  {
+    img: coverImg,
+    name: '客**凉',
+    num: 2,
+    vipText: '7天会员'
+  },
+  {
+    img: coverImg,
+    name: 'super',
+    num: 1,
+    vipText: '1天会员'
+  },
+  {
+    img: coverImg,
+    name: 'Zzz',
+    num: 8,
+    vipText: '7天会员'
+  },
+  {
+    img: coverImg,
+    name: '墨**客',
+    num: 6,
+    vipText: '30天会员'
+  },
+  {
+    img: coverImg,
+    name: '微信用户',
+    num: 9,
+    vipText: '30天会员'
+  }
+])
 </script>
 <template>
-  <!-- <van-swipe class="my-swipe" :autoplay="800" :duration="8000" indicator-color="white">
-    <van-swipe-item>
-      <div style="width: 50px; background-color: red; height: 100px">1</div>
-    </van-swipe-item>
-    <van-swipe-item>
-      <div style="width: 50px; background-color: red; height: 100px">2</div>
-    </van-swipe-item>
-    <van-swipe-item>
-      <div style="width: 50px; background-color: red; height: 100px">3</div>
-    </van-swipe-item>
-  </van-swipe> -->
   <navBar title="会员中心" />
-  <van-image style="display: block" :src="img1" />
+  <div class="header-img">
+    <div class="scroll-view">
+      <div class="views">
+        <div class="item-view" v-for="(item, index) in scrollTags" :key="index">
+          <img :src="coverImg" alt="" />
+          <span>{{ item.name }}</span>
+          <span class="ml">于{{ item.num }}分钟前开通{{ item.vipText }}</span>
+        </div>
+      </div>
+    </div>
+    <van-image style="display: block" :src="img1" />
+  </div>
   <div class="coupon">
     <div class="items">
       <div
@@ -117,8 +165,12 @@ const pay = () => {
         v-for="(item, index) in coupons"
         @click="changeActive(index)"
       >
-        <div class="name">{{ item.name }}</div>
+        <div class="name">
+          <strong>{{ item.name }}</strong>
+        </div>
         <div class="price"><span class="rmb">¥</span>{{ item.price }}</div>
+        <div class="foot-text" v-if="index == 2">最多购买</div>
+        <div class="foot-text" v-if="index == 1">推荐套餐</div>
         <div class="old-price">¥{{ item.price * 2 }}</div>
         <div class="text" v-if="index == 0">新人抢先体验</div>
         <div v-else class="pr">{{ (item.price / 30).toFixed(1) }}元/天</div>
@@ -128,6 +180,27 @@ const pay = () => {
   </div>
   <div class="btn-box">
     <div class="btn-mas" @click="pay"></div>
+    <div class="time">
+      <van-count-down :time="timeNum">
+        <template #default="timeData">
+          <div class="time-box">
+            <span>距离优惠结束还剩</span>
+            <div class="box" :style="{ color: 'red', fontSize: '16px' }">
+              <strong>{{ timeData.hours }}</strong>
+            </div>
+            <span>时</span>
+            <div class="box" :style="{ color: 'red', fontSize: '16px' }">
+              <strong>{{ timeData.minutes }}</strong>
+            </div>
+            <span>分</span>
+            <div class="box" :style="{ color: 'red', fontSize: '16px' }">
+              <strong>{{ timeData.seconds }}</strong>
+            </div>
+            <span>秒</span>
+          </div>
+        </template>
+      </van-count-down>
+    </div>
     <van-image style="display: block" :src="img3" />
   </div>
   <van-image style="display: block" :src="img4" />
@@ -138,6 +211,56 @@ const pay = () => {
   <div class="btn" @click="pay">充值</div> -->
 </template>
 <style lang="less" scoped>
+.header-img {
+  position: relative;
+}
+@keyframes marquee {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+.scroll-view {
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  z-index: 100000000;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  .views {
+    display: flex;
+    flex-wrap: nowrap;
+    animation: marquee 16s linear infinite;
+  }
+  .item-view {
+    font-size: 12px;
+    color: #fff;
+    padding-left: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 250px;
+    height: 30px;
+    background-color: rgba(51, 51, 51, 0.203);
+    border-radius: 20px;
+    margin-right: 12px;
+    .ml {
+      margin-left: 8px;
+    }
+    & > img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+  }
+}
 .coupon {
   position: relative;
   .items {
@@ -153,7 +276,7 @@ const pay = () => {
     padding: 0 10px;
     box-sizing: border-box;
     z-index: 100;
-    padding-bottom: 14px;
+    padding-bottom: 6px;
     .item {
       width: 110px;
       height: 154px;
@@ -163,8 +286,21 @@ const pay = () => {
       align-items: center;
       flex-direction: column;
       box-sizing: border-box;
-      .name {
+      position: relative;
+      .foot-text {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -14px;
         font-size: 12px;
+        border-radius: 30px;
+        color: #83812c;
+        background-image: linear-gradient(to right, #bed354, #daf93e85);
+        padding: 4px 8px;
+        width: 50px;
+      }
+      .name {
+        font-size: 14px;
         margin-top: 24px;
         color: #9a864f;
       }
@@ -208,6 +344,31 @@ const pay = () => {
     bottom: 0;
     height: 80px;
     z-index: 2000;
+  }
+  .time {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 36px;
+    height: 40px;
+    z-index: 2000;
+    .time-box {
+      font-size: 14px;
+      color: #83812c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .box {
+        border: 2px solid rgba(153, 153, 153, 0.521);
+        height: 24px;
+        width: 24px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 2px;
+      }
+    }
   }
 }
 </style>
